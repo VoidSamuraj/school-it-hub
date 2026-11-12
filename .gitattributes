@@ -1,0 +1,6 @@
+* text=auto
+# skrypty macOS muszą mieć końce linii LF, a Windows — CRLF
+*.command text eol=lf
+*.sh      text eol=lf
+*.bat     text eol=crlf
+*.png binary

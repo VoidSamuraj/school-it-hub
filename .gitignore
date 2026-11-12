@@ -1,0 +1,18 @@
+# ── dane szkoły (nazwiska, ewidencja, plany) — NIGDY do repozytorium ──
+dane/
+demo-dane/
+*.xls
+*.xlsx
+*.xml
+*.roz
+*.pdf
+ustawienia.json
+
+# ── środowisko i pliki tymczasowe ──
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/
+.claude/
