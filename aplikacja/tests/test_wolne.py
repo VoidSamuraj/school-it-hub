@@ -39,6 +39,26 @@ def test_time_label():
     assert w.time_label(tt) == "9:00–10:45"
 
 
+def test_now_target():
+    from datetime import datetime
+    from wolnesale.core.wolne import now_target
+    tt = make_tt([])          # lekcje 1..8: n -> (7+n):00–(7+n):45
+    wed = lambda h, m: datetime(2026, 11, 11, h, m)   # środa
+    t = now_target(tt, wed(6, 50))
+    assert (t.day, t.first, t.today) == (2, 1, True)                  # przed lekcjami
+    t = now_target(tt, wed(10, 20))
+    assert (t.day, t.first) == (2, 3) and "Trwa 3." in t.message      # w trakcie 3. lekcji (10:00–10:45)
+    t = now_target(tt, wed(10, 50))
+    assert (t.day, t.first) == (2, 4) and "Przerwa" in t.message     # przerwa -> następna 4.
+    t = now_target(tt, wed(17, 0))
+    assert (t.day, t.first, t.today) == (3, 1, False)                 # po lekcjach -> czwartek
+    assert "skończyły" in t.message
+    t = now_target(tt, datetime(2026, 11, 13, 18, 0))                 # piątek wieczór -> poniedziałek
+    assert t.day == 0
+    t = now_target(tt, datetime(2026, 11, 14, 12, 0))                 # sobota -> poniedziałek
+    assert t.day == 0 and "nie ma lekcji" in t.message
+
+
 def test_store_roundtrip_and_diff(tmp_path):
     old = make_tt([("12", 0, 1)])
     new = make_tt([("12", 0, 1), ("12", 0, 2), ("5W", 1, 1)])

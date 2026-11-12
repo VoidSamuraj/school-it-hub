@@ -8,7 +8,7 @@ from nicegui import ui
 from ...core.model import DAY_NAMES, DAY_SHORT
 from ...core.sale import BUILDINGS, INNE, building
 from ...core.moj_plan import HOURS_OFF, HOURS_ONLY, HOURS_SHOW, free_segments
-from ...core.wolne import free_windows
+from ...core.wolne import free_windows, now_target
 from ..app import nav_set
 from ..state import S
 from ..theme import (BCOL, BSHORT, badge, card, empty_plan_notice, esc, page_header, pc_badge,
@@ -157,17 +157,12 @@ def build():
         rng.on_value_change(on_range)
 
         def now():
-            n = datetime.now()
-            d = n.weekday() if n.weekday() in tt.days else tt.days[0]
-            cur = (n.hour, n.minute)
-            nxt = next((p.nr for p in tt.periods if _hm(p.end) >= cur), tt.periods[0].nr) \
-                if n.weekday() in tt.days else tt.periods[0].nr
-            f.update(days={d}, lo=nxt, hi=tt.periods[-1].nr, min=1)
+            t = now_target(tt, datetime.now())
+            f.update(days={t.day}, lo=t.first, hi=tt.periods[-1].nr, min=1)
             rng.value = {"min": f["lo"], "max": f["hi"]}
             paint()
             results.refresh()
-            if n.weekday() not in tt.days:
-                ui.notify("Dziś nie ma lekcji — pokazuję poniedziałek.")
+            ui.notify(t.message, type="info" if t.today else "warning", position="top", timeout=6000)
 
         with actions:
             ui.html('<span class="ws-flabel" style="margin:0 4px 0 0">Sortuj</span>', sanitize=False)
