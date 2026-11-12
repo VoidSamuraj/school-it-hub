@@ -1,103 +1,126 @@
 <div align="center">
 
-# 🏫 Wolne Sale
+# 🏫 School IT Hub
 
-**Plan lekcji z aSc → wolne sale, sprzęt w salach, tusze i zadania — w jednym programie dla szkolnego informatyka.**
+**A school IT technician's toolkit: find free classrooms from aSc Timetables, keep track of every computer
+and device, manage printer supplies, and plan your work — all in one desktop app.**
 
-Windows · macOS · Python · działa offline · dane zostają na Twoim komputerze
+Windows · macOS · Python · works offline · your data stays on your computer
 
-![Wolne sale](dokumentacja/zrzuty/01-wolne-sale.png)
+![Free rooms](dokumentacja/zrzuty/01-wolne-sale.png)
+
+🇵🇱 Polska wersja: [README.pl.md](README.pl.md)
 
 </div>
 
-> ℹ️ Wszystkie zrzuty ekranu pokazują **fikcyjne dane demonstracyjne** (`Nauczyciel 01…`, sprzęt `DEMO/…`).
-> Program jest niezależnym narzędziem i nie jest powiązany z twórcami aSc Plan Lekcji.
+> ℹ️ **All screenshots use fictional demo data** (`Nauczyciel 01…` = “Teacher 01”, devices `DEMO/…`).
+> The user interface is in **Polish**. This is an independent tool, not affiliated with aSc Timetables.
 
 ---
 
-## ✨ Co potrafi
+## Why
 
-### 🔎 Wolne sale
-Kiedy która sala jest wolna — **jeden wiersz na salę**, w każdym dniu połączone wolne okna (np. `1–2` i `5–6`).
-Filtry: dni, zakres lekcji, „potrzebuję sali na N lekcji”, budynek, **sale IT / z komputerem**.
-Przycisk **„Co jest wolne teraz?”**. Z **godzinami pracy** widać, co jest wolne, ale już po Twoich godzinach (🌙),
-albo pokazuje tylko to, co się w nich mieści.
+In a school, the IT person needs a free room for longer work (installing software, servicing a lab),
+needs to know **which computers and devices are where**, which printer takes which toner and when it will
+run out, and what still has to be done in which room. The data lives in an aSc timetable and in the
+accountant's inventory spreadsheets. This app brings it together.
 
-### 🗓 Tydzień i 📅 Dzień
-| Tydzień — wszystkie sale na raz | Dzień — kto i co w każdej sali |
+## ✨ Features
+
+### 🔎 Free rooms
+When is each room free — **one row per room**, with free time windows merged per day (e.g. lessons `1–2` and `5–6`).
+Filters: days, lesson range, “I need the room for N lessons in a row”, building, **computer labs only / rooms with a PC**.
+A **“What's free right now?”** button. With your **working hours** set, it marks windows that are free but already
+after your hours (🌙), or shows only what fits inside them.
+
+### 🗓 Week & 📅 Day
+| Week — all rooms at once | Day — who is where |
 |---|---|
-| ![Tydzień](dokumentacja/zrzuty/02-tydzien.png) | ![Dzień](dokumentacja/zrzuty/03-dzien.png) |
+| ![Week](dokumentacja/zrzuty/02-tydzien.png) | ![Day](dokumentacja/zrzuty/03-dzien.png) |
 
-Dymek po najechaniu: lekcja, godziny, przedmiot, klasa, nauczyciel. Lekcje poza godzinami pracy są zakreskowane.
+Hover a cell for details: lesson, time, subject, class, teacher. Lessons outside your working hours are hatched.
 
-### 🚪 Sala
-Plan tygodnia sali, wolne okna, **sprzęt w sali** (ile komputerów, laptopów, projektor…) i **zadania** dla tej sali.
+### 🚪 Room
+The room's weekly timetable, its free windows, **equipment in the room** (how many PCs, laptops, projector…)
+and **open tasks** for that room.
 
-![Sala](dokumentacja/zrzuty/04-sala.png)
+![Room](dokumentacja/zrzuty/04-sala.png)
 
-### 🖥 Spis sprzętu
-Import zestawień z **ewidencji księgowej (.xls)** — program sam rozczytuje opisy typu `29/ w 12`,
-`12W użytkuje …`, `15, 33, 2 w 16` (kilka sztuk pod jednym numerem) i rozbija je na pojedyncze urządzenia.
-Drzewko budynków i sal, filtry (kilka kategorii naraz), **przenoszenie**, statusy (serwis, wypożyczony),
-pewność lokalizacji, **historia każdej zmiany**. Ponowny import od księgowej nie nadpisuje Twoich poprawek.
+### 🖥 Equipment inventory (computers & devices)
+Imports the school's **fixed-asset inventory spreadsheets (.xls)**. Free-text locations such as
+`29/ w 12` (“listed in 29, actually in 12”), `12W użytkuje …` (“used by …”) or `15, 33, 2 w 16`
+(several units under one inventory number) are parsed and split into individual devices.
+Building → room tree, multi-category filters, **counts of PCs / laptops / Chromebooks per room**
+(labs are detected automatically), **moving devices**, statuses (in service, lent), location certainty and a
+**full change history**. Re-importing a newer spreadsheet updates the official data without overwriting your corrections.
 
-![Spis sprzętu](dokumentacja/zrzuty/05-sprzet.png)
+![Equipment](dokumentacja/zrzuty/05-sprzet.png)
 
-### 🖨 Zaplecze i tusze
-Stany tonerów i tuszy, **ile wkładów ma każdy model drukarki** (czarny / czarny + kolor / CMYK) i których brakuje,
-**średnie zużycie z dat wymian** i prognoza „na ile wystarczy zapas”, lista **do dokupienia** (do skopiowania).
+### 🖨 Printer supplies
+Toner and ink stock, **which cartridges each printer model needs** (black only / black + colour / CMYK) and which
+are missing, **average consumption from replacement dates** with a “stock lasts until…” forecast, and a
+**shopping list** you can copy.
 
-![Zaplecze i tusze](dokumentacja/zrzuty/06-zaplecze.png)
+![Printer supplies](dokumentacja/zrzuty/06-zaplecze.png)
 
-### ✅ Zadania
-Zadania w salach (termin, priorytet, status) oraz **zadania globalne** — np. „aktualizacja Windows na każdym
-komputerze w salach IT” — z **tabelą checkboxów** i postępem na salę.
+### ✅ Tasks
+Room tasks (due date, priority, status) and **bulk tasks** — e.g. “Windows update on every computer in the labs” —
+with a **checkbox grid** and per-room progress.
 
-![Zadania](dokumentacja/zrzuty/07-zadania.png)
+![Tasks](dokumentacja/zrzuty/07-zadania.png)
 
-### 🗺 Mój plan
-Tygodniowy grafik godzin pracy (od–do wg zegara). Wpływa na Wolne sale, Dzień i Tydzień.
+### 🗺 My schedule
+Your weekly working hours (clock time, recurring). Used by Free rooms, Day and Week.
 
-![Mój plan](dokumentacja/zrzuty/08-moj-plan.png)
+![My schedule](dokumentacja/zrzuty/08-moj-plan.png)
 
 ---
 
-## 🚀 Wypróbuj na danych demo (1 minuta)
+## 🚀 Try it with demo data
 
-Po instalacji (niżej) uruchom w folderze `aplikacja`:
+After installing (below), run in the `aplikacja` folder:
 
 ```bash
 python -m wolnesale --demo
 ```
-(Windows z `.venv`: `.venv\Scripts\python -m wolnesale --demo`, macOS: `./start-mac.command --demo`)
 
-Program utworzy folder `demo-dane/` z fikcyjnym planem, sprzętem, tuszami i zadaniami.
+(Windows with the venv: `.venv\Scripts\python -m wolnesale --demo` · macOS: `./start-mac.command --demo`)
+
+This creates a `demo-dane/` folder with a fictional timetable, equipment, toners and tasks.
 
 ---
 
-## ⚙️ Instalacja
+## ⚙️ Installation
 
-Potrzebny jest **Python 3.12+** — https://www.python.org/downloads/ . Instalację robi się **raz** na komputerze.
+You need **Python 3.12 or newer** — https://www.python.org/downloads/ . Installation is done **once** per computer
+and downloads the libraries from the internet (a few minutes).
 
 ### 🪟 Windows
-1. Zainstaluj Pythona (zaznacz **„Add python.exe to PATH”**).
-2. Dwuklik **`instalacja-windows.bat`** → poczekaj na „Gotowe”.
-3. Uruchamiaj dwuklikiem **`start.bat`** (albo `start-przegladarka.bat` — to samo w przeglądarce).
+1. Install Python — tick **“Add python.exe to PATH”** in the installer.
+2. Double-click **`instalacja-windows.bat`** (“installation”) and wait for “Gotowe” (“Done”).
+3. Start the app by double-clicking **`start.bat`**.
+   If the app window does not open, use **`start-przegladarka.bat`** — the same app in your web browser.
+
+The app window uses **Microsoft Edge WebView2**, which is included in Windows 10/11.
 
 ### 🍎 macOS
-1. Zainstaluj Pythona z python.org (albo `brew install python`).
-2. W Terminalu, w folderze projektu:
-   ```bash
-   chmod +x instalacja-mac.command start-mac.command
-   ```
+1. Install Python from python.org (or `brew install python`).
+2. Open **Terminal** in the project folder and run:
    ```bash
    ./instalacja-mac.command
    ```
-3. Uruchamiaj dwuklikiem **`start-mac.command`** (za pierwszym razem: prawy przycisk → **Otwórz**).
+   If macOS says “permission denied”, run this once first:
+   ```bash
+   chmod +x instalacja-mac.command start-mac.command
+   ```
+3. Start the app by double-clicking **`start-mac.command`** (the first time: right-click → **Open** if macOS
+   warns about an unidentified developer).
 
-<details><summary>Instalacja ręczna</summary>
+The app window uses the system's built-in Safari engine — nothing else to install.
 
-W folderze `aplikacja`:
+<details><summary>Manual installation (any OS)</summary>
+
+In the `aplikacja` folder:
 ```bash
 python -m venv .venv
 ```
@@ -105,61 +128,78 @@ Windows:
 ```bash
 .venv\Scripts\python -m pip install -r requirements.txt
 ```
+```bash
+.venv\Scripts\python -m wolnesale
+```
 macOS / Linux:
 ```bash
 .venv/bin/python -m pip install -r requirements.txt
 ```
+```bash
+.venv/bin/python -m wolnesale
+```
 </details>
 
-### Pierwsze kroki
-1. **Wczytaj plan (PDF)** — w aSc wydrukuj **plany nauczycieli** do PDF (eksport XML wymaga licencji, PDF nie).
-2. **Spis sprzętu → Importuj ewidencję** — zestawienia `.xls` od księgowej (można zaznaczyć wszystkie).
-3. **Mój plan** — wpisz godziny pracy.
+### First steps
+1. **Wczytaj plan (PDF)** (“Load timetable”) — in aSc Timetables print the **teachers' timetables** to PDF.
+   (Exporting XML from aSc requires a licence; printing to PDF does not.) You get a report before anything is replaced.
+2. **Spis sprzętu → Importuj ewidencję** (“Equipment → Import inventory”) — select the `.xls` inventory files
+   (you can select all of them at once).
+3. **Mój plan** (“My schedule”) — enter your working hours.
 
-### Tryby uruchomienia
-| Opcja | Co robi |
+### Launch options
+| Option | What it does |
 |---|---|
-| *(brak)* | okno programu |
-| `--browser` | w przeglądarce (http://127.0.0.1:8765) |
-| `--siec` | dostęp z **telefonu** w tej samej sieci Wi-Fi: `http://<adres-komputera>:8765` |
-| `--demo` | fikcyjne dane demonstracyjne |
-| `--dane FOLDER` | dane z innego folderu |
+| *(none)* | desktop app window |
+| `--browser` | in your web browser (http://127.0.0.1:8765) |
+| `--siec` | “network”: also reachable from your **phone** on the same Wi-Fi — `http://<computer-ip>:8765` |
+| `--demo` | fictional demo data |
+| `--dane FOLDER` | use data from another folder |
 
 ---
 
-## 🔒 Dane i prywatność
+## 🔒 Data & privacy
 
-Program działa **lokalnie** — nic nie jest wysyłane do internetu. Wszystko leży w folderze `dane/`
-(jest w `.gitignore`, więc **nie trafia do repozytorium**):
+Everything runs **locally** — nothing is sent anywhere. All data lives in the `dane/` folder, which is in
+`.gitignore` and **never goes into the repository**:
 
-| Folder | Zawartość |
+| Folder | Contents |
 |---|---|
-| `dane/zrodla/` | kopie wczytanych plików (PDF planu, xls z ewidencji) — program ich nie zmienia |
-| `dane/program/plan.json` | aktywny plan lekcji |
-| `dane/program/zasoby.xlsx` | sprzęt, historia, sale, zaplecze, zadania, godziny pracy — **można otwierać w Excelu** |
-| `dane/kopie/` | automatyczne kopie zapasowe przed każdym zapisem |
+| `dane/zrodla/` | copies of imported files (timetable PDF, inventory .xls) — never modified |
+| `dane/program/plan.json` | the active timetable |
+| `dane/program/zasoby.xlsx` | equipment, history, rooms, supplies, tasks, working hours — **you can open it in Excel** |
+| `dane/kopie/` | automatic backups before every save |
 
-Folder `dane/` możesz przenosić między komputerami (także Windows ↔ Mac). Folderu `aplikacja/.venv` nie przenoś.
+You can copy the `dane/` folder between computers (Windows ↔ Mac). Don't copy `aplikacja/.venv` —
+each computer creates its own.
 
 ---
 
-## 🧱 Budowa
+## 🧱 Project structure
 
 ```
-start.bat / start-mac.command      uruchamianie
-instalacja-windows.bat / -mac      instalacja
+start.bat / start-mac.command        start the app
+instalacja-windows.bat / -mac        one-time installation
 aplikacja/
-  wolnesale/core/                  logika (bez interfejsu): parser PDF aSc, import ewidencji, wolne okna,
-                                   zaplecze i prognoza zużycia, zadania, godziny pracy
-  wolnesale/web/                   interfejs (NiceGUI)
-  tests/                           testy (pytest)
-dokumentacja/                      plan projektu, zrzuty ekranu, makiety
+  wolnesale/core/                    logic (no UI): aSc PDF parser, inventory import, free windows,
+                                     printer supplies & forecast, tasks, working hours
+  wolnesale/web/                     user interface (NiceGUI)
+  tests/                             tests (pytest)
+dokumentacja/                        project plan, screenshots, early mock-ups
 ```
 
 Python · [NiceGUI](https://nicegui.io) · pdfplumber · openpyxl · xlrd · pywebview
 
-**Testy** (w folderze `aplikacja`):
+**Tests** (in the `aplikacja` folder):
 ```bash
 python -m pytest -q
 ```
-Część testów korzysta z prawdziwego PDF-u i zestawień — uruchamiają się tylko, gdy są w `dane/`.
+Some tests use a real timetable PDF and inventory files — they run only when those files are present in `dane/`.
+
+### Assumptions about your data
+- **Timetable:** a PDF of *teachers' timetables* printed from aSc Timetables (one table per teacher,
+  days × lessons, room shown in each cell). Other print layouts are not supported yet.
+- **Room names:** the suffix tells the building — `W` workshop, `B` dormitory, none = main building,
+  `D1/D2/M1/M2` = gyms. Adjust `wolnesale/core/sale.py` for your school.
+- **Inventory:** spreadsheets with columns like *Nr inwentarza, Nazwa środka, Ilość, Pomieszczenie*
+  (inventory number, item name, quantity, room) — the format exported by Polish school accounting software.
