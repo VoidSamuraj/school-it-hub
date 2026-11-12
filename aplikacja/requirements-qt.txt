@@ -1,0 +1,2 @@
+# opcjonalnie: stary interfejs Qt (python -m wolnesale --qt)
+PySide6>=6.7

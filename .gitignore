@@ -16,3 +16,6 @@ __pycache__/
 build/
 dist/
 .claude/
+
+# ── notatki i makiety ze szczegółami szkoły — tylko lokalnie ──
+prywatne/

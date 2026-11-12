@@ -1,25 +1,17 @@
 @echo off
-rem Wolne Sale — instalacja (jednorazowo) na Windows
-cd /d "%~dp0aplikacja"
+rem School IT Hub — instalacja na Windows (dwuklik). Robi wszystko skrypt instaluj.py.
+cd /d "%~dp0"
+where py >nul 2>nul
+if not errorlevel 1 (
+  py -3 instaluj.py %*
+  goto koniec
+)
 where python >nul 2>nul
-if errorlevel 1 (
-  echo Nie znaleziono Pythona. Zainstaluj Python 3.12+ z https://www.python.org/downloads/
-  echo (zaznacz "Add python.exe to PATH") i uruchom ten plik ponownie.
-  pause
-  exit /b 1
+if not errorlevel 1 (
+  python instaluj.py %*
+  goto koniec
 )
-if not exist ".venv\Scripts\python.exe" (
-  echo Tworze srodowisko .venv ...
-  python -m venv .venv
-)
-echo Instaluje biblioteki (kilka minut) ...
-".venv\Scripts\python.exe" -m pip install --upgrade pip
-".venv\Scripts\python.exe" -m pip install -r requirements.txt
-if errorlevel 1 (
-  echo Instalacja nie powiodla sie - sprawdz komunikaty powyzej.
-  pause
-  exit /b 1
-)
-echo.
-echo Gotowe. Program uruchamiasz plikiem start.bat
+echo Nie znaleziono Pythona. Zainstaluj Python 3.12+ z https://www.python.org/downloads/
+echo (w instalatorze zaznacz "Add python.exe to PATH") i uruchom ten plik ponownie.
+:koniec
 pause

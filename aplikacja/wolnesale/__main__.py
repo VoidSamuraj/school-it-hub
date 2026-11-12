@@ -25,7 +25,10 @@ elif "--demo" in sys.argv:
     os.environ["WOLNESALE_DANE"] = str(demo_dir)
 
 if "--qt" in sys.argv:
-    from wolnesale.ui.main_window import run
+    try:
+        from wolnesale.ui.main_window import run
+    except ImportError:
+        sys.exit("Stary interfejs wymaga PySide6:  pip install -r requirements-qt.txt")
     sys.exit(run())
 
 from wolnesale.web.app import main  # noqa: E402
