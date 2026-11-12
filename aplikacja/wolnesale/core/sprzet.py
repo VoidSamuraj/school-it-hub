@@ -24,6 +24,12 @@ PEWNOSCI = [PEWNA, NIEPEWNA, NIEZNANA]
 OK, SERWIS, WYPOZYCZONY, WYCOFANY = "OK", "serwis", "wypożyczony", "wycofany"
 STATUSY = [OK, SERWIS, WYPOZYCZONY, WYCOFANY]
 
+# przypisanie do osoby
+NA_STALE, WYPOZYCZENIE = "na stałe", "wypożyczenie"
+PRZYDZIALY = [NA_STALE, WYPOZYCZENIE]
+POZA_SZKOLA = "Poza szkołą"          # lokalizacja: u osoby w domu / poza budynkiem
+LOCATION_EVENTS = {"przeniesienie", "wydanie", "wypożyczenie", "zwrot"}
+
 SHEET_ITEMS, SHEET_HISTORY, SHEET_ROOMS = "Sprzęt", "Historia", "Sale"
 
 # atrybut -> nagłówek kolumny w Excelu
@@ -39,6 +45,8 @@ ITEM_COLUMNS: list[tuple[str, str]] = [
     ("pewnosc", "Pewność lokalizacji"),
     ("status", "Status"),
     ("uzytkownik", "Użytkownik"),
+    ("przydzial", "Przydział"),
+    ("zwrot", "Zwrot do"),
     ("sprawdzono", "Sprawdzono"),
     ("uwagi", "Uwagi"),
     ("sala_ewid", "Sala (ewidencja)"),
@@ -50,7 +58,7 @@ ITEM_COLUMNS: list[tuple[str, str]] = [
 EWID_FIELDS = ["inv", "kategoria", "nazwa", "projekt", "data", "wartosc", "sala_ewid", "opis_ewid",
                "w_ewidencji", "zrodlo"]
 # pola prowadzone przeze mnie (import ich nie rusza)
-USER_FIELDS = ["sala", "pewnosc", "status", "uzytkownik", "sprawdzono", "uwagi"]
+USER_FIELDS = ["sala", "pewnosc", "status", "uzytkownik", "przydzial", "zwrot", "sprawdzono", "uwagi"]
 
 HISTORY_COLUMNS = ["Data", "ID", "Zdarzenie", "Z", "Do", "Opis"]
 ROOM_COLUMNS = ["Sala", "Budynek", "Typ", "Stanowiska", "Uwagi"]
@@ -74,6 +82,8 @@ class Item:
     pewnosc: str = PEWNA
     status: str = OK
     uzytkownik: str = ""
+    przydzial: str = ""      # "" (w sali) / "na stałe" / "wypożyczenie"
+    zwrot: str = ""          # planowany zwrot (RRRR-MM-DD) przy wypożyczeniu
     sprawdzono: str = ""
     uwagi: str = ""
     sala_ewid: str = ""
@@ -85,6 +95,24 @@ class Item:
     @property
     def building(self) -> str:
         return building(self.sala) if self.sala else ""
+
+    @property
+    def with_person(self) -> bool:
+        return bool(self.uzytkownik)
+
+    @property
+    def where(self) -> str:
+        """Gdzie jest teraz, jednym tekstem: '12', 'Nowak J. · 12', 'Nowak J. · Poza szkołą'."""
+        place = self.sala or "?"
+        return f"{self.uzytkownik} · {place}" if self.uzytkownik else place
+
+    def overdue(self, today: date | None = None) -> bool:
+        if self.przydzial != WYPOZYCZENIE or not self.zwrot:
+            return False
+        try:
+            return date.fromisoformat(self.zwrot[:10]) < (today or date.today())
+        except ValueError:
+            return False
 
     @property
     def moved(self) -> bool:
@@ -123,6 +151,7 @@ class Inventory:
         from .moj_plan import WorkHours
         self.my_plan: list = []              # moj_plan.Entry
         self.work_hours = WorkHours()
+        self.osoby: dict = {}                # osoby.Person — rejestr osób
 
     # --- odczyt -----------------------------------------------------------
     @classmethod
@@ -150,8 +179,12 @@ class Inventory:
         inv.tasks, inv.global_tasks, inv.progress = load_all(wb, _rows)
         from . import moj_plan
         inv.my_plan, inv.work_hours = moj_plan.load(wb, _rows)
+        from .osoby import SHEET_PEOPLE, load_people
+        if SHEET_PEOPLE in wb.sheetnames:
+            inv.osoby = load_people(wb[SHEET_PEOPLE], _rows)
         known = {SHEET_ITEMS, SHEET_HISTORY, SHEET_ROOMS, SHEET_MATERIALS, SHEET_MODELS,
-                 SHEET_TASKS, SHEET_GLOBAL, SHEET_PROGRESS, moj_plan.SHEET_PLAN, moj_plan.SHEET_HOURS}
+                 SHEET_TASKS, SHEET_GLOBAL, SHEET_PROGRESS, moj_plan.SHEET_PLAN, moj_plan.SHEET_HOURS,
+                 SHEET_PEOPLE}
         for name in wb.sheetnames:
             if name not in known:
                 inv.other_sheets[name] = [list(r) for r in wb[name].iter_rows(values_only=True)]
@@ -236,6 +269,8 @@ class Inventory:
         write_all(wb, self, _style, _validation)
         from . import moj_plan
         moj_plan.write(wb, self, _style)
+        from .osoby import SHEET_PEOPLE, write_people
+        write_people(wb.create_sheet(SHEET_PEOPLE), self.osoby, _style)
 
         for name, rows in self.other_sheets.items():
             wo = wb.create_sheet(name[:31])
@@ -264,13 +299,14 @@ class Inventory:
         done = []
         if "sala" in changes:
             changes["sala"] = _norm_loc(changes["sala"]) if changes["sala"] else ""
+        before_where = it.where
         for k, v in changes.items():
             old = getattr(it, k)
             if old == v:
                 continue
             setattr(it, k, v)
             if k == "sala":
-                self.log(item_id, "przeniesienie", old, v)
+                self.log(item_id, "przeniesienie", before_where, it.where)
             elif k == "status":
                 ev = {SERWIS: "serwis", WYPOZYCZONY: "wypożyczenie", WYCOFANY: "wycofanie"}.get(v, "zmiana statusu")
                 if v == OK and old in (SERWIS, WYPOZYCZONY):
@@ -283,6 +319,59 @@ class Inventory:
 
     def item_history(self, item_id: str) -> list[Event]:
         return [e for e in self.history if e.id == item_id]
+
+    # --- lokalizacja: sala albo osoba -------------------------------------
+    def move_to(self, item_id: str, room: str, note: str = "") -> None:
+        """Przeniesienie do innej sali/miejsca. Przypisanie do osoby (jeśli jest) zostaje."""
+        it = self.items[item_id]
+        room = _norm_loc(room) if room else ""
+        before = it.where
+        it.sala = room
+        if it.where != before:
+            self.log(item_id, "przeniesienie", before, it.where, note)
+
+    def hand_over(self, item_id: str, person: str, place: str, kind: str = WYPOZYCZENIE,
+                  until: str = "", note: str = "") -> None:
+        """Wydanie osobie: na stałe (np. laptop służbowy) albo wypożyczenie (z datą zwrotu).
+
+        place — gdzie urządzenie fizycznie będzie: sala albo POZA_SZKOLA.
+        """
+        it = self.items[item_id]
+        before = it.where
+        it.uzytkownik = person.strip()
+        it.sala = _norm_loc(place) if place else POZA_SZKOLA
+        it.przydzial = kind
+        it.zwrot = until if kind == WYPOZYCZENIE else ""
+        if kind == WYPOZYCZENIE:
+            it.status = WYPOZYCZONY
+        elif it.status == WYPOZYCZONY:
+            it.status = OK
+        parts = [kind] + ([f"zwrot do {until}"] if until and kind == WYPOZYCZENIE else []) + ([note] if note else [])
+        self.log(item_id, "wypożyczenie" if kind == WYPOZYCZENIE else "wydanie", before, it.where, " · ".join(parts))
+
+    def take_back(self, item_id: str, room: str, note: str = "") -> None:
+        """Zwrot od osoby — urządzenie wraca do sali (bez przypisania do osoby)."""
+        it = self.items[item_id]
+        before = it.where
+        it.uzytkownik, it.przydzial, it.zwrot = "", "", ""
+        if it.status == WYPOZYCZONY:
+            it.status = OK
+        it.sala = _norm_loc(room) if room else ""
+        self.log(item_id, "zwrot", before, it.where, note)
+
+    def room_before_handover(self, item_id: str) -> str:
+        """Sala, z której urządzenie wydano osobie (podpowiedź przy zwrocie)."""
+        for e in reversed(self.item_history(item_id)):
+            if e.zdarzenie in ("wydanie", "wypożyczenie"):
+                return e.z if is_room(e.z) else ""
+        return ""
+
+    def location_history(self, item_id: str) -> list[Event]:
+        return [e for e in self.item_history(item_id) if e.zdarzenie in LOCATION_EVENTS]
+
+    def people(self) -> list[str]:
+        """Osoby do wyboru: rejestr osób + ci, którzy mają sprzęt (gdyby nie byli w rejestrze)."""
+        return sorted(set(self.osoby) | {i.uzytkownik for i in self.items.values() if i.uzytkownik})
 
     # --- zapytania --------------------------------------------------------
     def locations(self) -> list[str]:

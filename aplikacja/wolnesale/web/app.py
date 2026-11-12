@@ -16,6 +16,7 @@ NAV = [
     ("/sala", "meeting_room", "Sale"),
     ("Sprzęt", None, None),
     ("/sprzet", "computer", "Spis sprzętu"),
+    ("/osoby", "groups", "Osoby"),
     ("/zaplecze", "print", "Zaplecze i tusze"),
     ("Praca", None, None),
     ("/zadania", "task_alt", "Zadania"),
@@ -69,6 +70,7 @@ def plan_dialog():
                 with body:
                     ui.label(f"❌ {err}").classes("text-red-700 font-semibold")
                 return
+            tt.source = e.file.name        # nazwa pliku bez znacznika czasu kopii w dane/zrodla
             body.clear()
             with body:
                 ok = "✅" if rep.ok else "⚠️"
@@ -101,9 +103,15 @@ def plan_dialog():
                 def accept():
                     S.store.activate(tt, path)
                     S.tt = tt
+                    # nauczyciele z planu trafiają do rejestru osób (bez duplikatów)
+                    from ..core.osoby import Registry
+                    reg = Registry(S.inv)
+                    if reg.sync_plan(tt.teachers) or S.inv.items:
+                        reg.normalize_items()
+                        S.save_inventory()
                     dlg.close()
                     ui.notify(f"Wczytano plan {tt.source}", type="positive")
-                    ui.navigate.to("/")
+                    ui.run_javascript("window.location.href = '/'")   # pełne przeładowanie (menu + ekrany z nowym planem)
 
                 with ui.row().classes("w-full justify-end gap-2 mt-2"):
                     ui.button("Anuluj", on_click=dlg.close).props("flat")
@@ -126,14 +134,14 @@ def restore_dialog():
                 S.tt = S.store.restore(v)
                 dlg.close()
                 ui.notify("Przywrócono plan", type="positive")
-                ui.navigate.to("/")
+                ui.run_javascript("window.location.href = '/'")   # pełne przeładowanie (menu + ekrany z nowym planem)
             ui.button(v.stem, on_click=do).props("flat align=left").classes("w-full")
         ui.button("Zamknij", on_click=dlg.close).props("flat").classes("self-end")
     dlg.open()
 
 
 def root():
-    from .pages import dzien, moj_plan, sala, sprzet, tydzien, wolne, zadania, zaplecze
+    from .pages import dzien, moj_plan, osoby, sala, sprzet, tydzien, wolne, zadania, zaplecze
 
     ui.add_css(CSS)
     ui.add_head_html('<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" '
@@ -183,6 +191,7 @@ def root():
         "/sala": sala.build,
         "/sala/{room}": sala.build,
         "/sprzet": sprzet.build,
+        "/osoby": osoby.build,
         "/zaplecze": zaplecze.build,
         "/zadania": zadania.build,
         "/moj-plan": moj_plan.build,
