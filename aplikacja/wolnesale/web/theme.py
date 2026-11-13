@@ -81,6 +81,13 @@ body{background:var(--bg);color:var(--ink);font-family:Inter,'Segoe UI',sans-ser
 .ws-tt .cell.b{background:var(--busy)}
 .ws-tt .cell.b b{display:block}
 .ws-tt .cell .t{color:var(--mut);font-size:12px}
+.ws-tt .cell.gap{background:#fff7ed;color:#c2410c;font-weight:600;display:grid;place-items:center;font-size:12px}
+.ws-tt .cell.e{background:#f8fafc}
+.ws-tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.ws-tcard{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;color:var(--ink);text-decoration:none;font-size:14px}
+.ws-tcard:hover{border-color:var(--acc);background:#eef2ff}
+.ws-tcard .ws-mut{font-size:12px}
+.ws-tlink{color:inherit;text-decoration:none}.ws-tlink:hover{color:var(--acc);text-decoration:underline}
 /* dymek */
 #ws-tip{position:fixed;z-index:9999;pointer-events:none;background:#141a2e;color:#fff;border-radius:12px;padding:10px 13px;
         font-size:13px;line-height:1.45;white-space:pre-line;max-width:360px;box-shadow:0 10px 30px #0004;display:none}

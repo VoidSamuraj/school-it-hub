@@ -14,6 +14,7 @@ NAV = [
     ("/tydzien", "calendar_view_week", "Tydzień"),
     ("/dzien", "today", "Dzień"),
     ("/sala", "meeting_room", "Sale"),
+    ("/nauczyciel", "school", "Nauczyciele"),
     ("Sprzęt", None, None),
     ("/sprzet", "computer", "Spis sprzętu"),
     ("/osoby", "groups", "Osoby"),
@@ -141,7 +142,7 @@ def restore_dialog():
 
 
 def root():
-    from .pages import dzien, moj_plan, osoby, sala, sprzet, tydzien, wolne, zadania, zaplecze
+    from .pages import dzien, moj_plan, nauczyciel, osoby, sala, sprzet, tydzien, wolne, zadania, zaplecze
 
     ui.add_css(CSS)
     ui.add_head_html('<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" '
@@ -190,6 +191,8 @@ def root():
         "/dzien": dzien.build,
         "/sala": sala.build,
         "/sala/{room}": sala.build,
+        "/nauczyciel": nauczyciel.build,
+        "/nauczyciel/{name}": nauczyciel.build,
         "/sprzet": sprzet.build,
         "/osoby": osoby.build,
         "/zaplecze": zaplecze.build,

@@ -230,6 +230,11 @@ def person_dialog(name: str | None, after) -> None:
                  "rozpozna po nich osobę.").classes("ws-hint")
         uwagi = ui.input("Uwagi", value=p.uwagi).props("outlined dense").classes("w-full")
         devs = [] if new else reg.devices(p.nazwa)
+        if not new and S.tt and any(l.teacher == p.nazwa for l in S.tt.lessons):
+            from .nauczyciel import url_for
+            ui.button("Plan lekcji tej osoby", icon="calendar_view_week",
+                      on_click=lambda: (dlg.close(), ui.navigate.to(url_for(p.nazwa)))) \
+                .props("outline no-caps color=primary")
         if not new:
             ui.html(f'<span class="ws-flabel" style="margin-top:6px">Sprzęt tej osoby ({len(devs)})</span>',
                     sanitize=False)

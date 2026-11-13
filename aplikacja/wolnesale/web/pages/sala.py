@@ -11,6 +11,7 @@ from ...core.wolne import free_windows
 from ..app import nav_set
 from ..state import S
 from ..theme import badge, card, empty_plan_notice, esc, page_header, pc_badge
+from .nauczyciel import url_for as teacher_url
 from .tydzien import slot_tip
 
 
@@ -54,7 +55,7 @@ def build(room: str | None = None):
                     tip = slot_tip(tt, room, d, p.nr, ls)
                     if ls:
                         txt = "".join(f"<b>{esc(l.subject)}</b>{esc(l.cls)} {esc(l.group)}"
-                                      f"<div class='t'>{esc(l.teacher)}</div>" for l in ls)
+                                      f"<div class='t'><a class='ws-tlink' href='{teacher_url(l.teacher)}'>{esc(l.teacher)}</a></div>" for l in ls)
                         parts.append(f'<div class="cell b" data-tip="{tip}">{txt}</div>')
                     else:
                         parts.append(f'<div class="cell f" data-tip="{tip}">wolna</div>')
