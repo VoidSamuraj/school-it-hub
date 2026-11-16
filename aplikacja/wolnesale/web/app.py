@@ -6,7 +6,7 @@ from nicegui import run, ui
 from ..core.asc_pdf import PlanParseError, parse_pdf
 from ..core.plany import diff_plans
 from .state import S
-from .theme import CSS, TOOLTIP_JS, esc
+from .theme import CSS, NOW_JS, TOOLTIP_JS, esc
 
 NAV = [
     ("Plan", None, None),
@@ -148,6 +148,7 @@ def root():
     ui.add_head_html('<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" '
                      'rel="stylesheet">')
     ui.add_body_html(TOOLTIP_JS)
+    ui.add_body_html(NOW_JS)
     ui.colors(primary="#4f46e5")
 
     with ui.left_drawer(value=True, fixed=True).props("width=240 :breakpoint=700").classes("ws-nav p-3"):

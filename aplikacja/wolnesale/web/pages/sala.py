@@ -10,7 +10,7 @@ from ...core.sale import building, normalize_room
 from ...core.wolne import free_windows
 from ..app import nav_set
 from ..state import S
-from ..theme import badge, card, empty_plan_notice, esc, page_header, pc_badge
+from ..theme import badge, card, empty_plan_notice, esc, page_header, now_toggle, pc_badge, tattr
 from .nauczyciel import url_for as teacher_url
 from .tydzien import slot_tip
 
@@ -25,6 +25,7 @@ def build(room: str | None = None):
             return
         room = normalize_room(room) if room else tt.rooms[0]
         with actions:
+            now_toggle()
             ui.select(tt.rooms, value=room if room in tt.rooms else None, with_input=True, label="Sala",
                       on_change=lambda e: ui.navigate.to(f"/sala/{e.value}")) \
                 .props("outlined dense rounded options-dense").classes("w-40")
@@ -46,19 +47,20 @@ def build(room: str | None = None):
             # plan tygodnia
             per = tt.periods
             cols = f"92px repeat({len(tt.days)}, minmax(120px, 1fr))"
-            parts = [f'<div class="ws-tt" style="grid-template-columns:{cols}"><div></div>']
-            parts += [f'<div class="h">{DAY_NAMES[d]}</div>' for d in tt.days]
+            parts = [f'<div class="ws-tt ax-y" style="grid-template-columns:{cols}"><div></div>']
+            parts += [f'<div class="h" data-today="{d}">{DAY_NAMES[d]}</div>' for d in tt.days]
             for p in per:
-                parts.append(f'<div class="h" style="text-align:left">{p.nr}<small>{p.start}–{p.end}</small></div>')
+                parts.append(f'<div class="h hd"{tattr(tt, "*", p.nr)} style="text-align:left">{p.nr}'
+                             f'<small>{p.start}–{p.end}</small></div>')
                 for d in tt.days:
                     ls = tt.lessons_at(room, d, p.nr)
                     tip = slot_tip(tt, room, d, p.nr, ls)
                     if ls:
                         txt = "".join(f"<b>{esc(l.subject)}</b>{esc(l.cls)} {esc(l.group)}"
                                       f"<div class='t'><a class='ws-tlink' href='{teacher_url(l.teacher)}'>{esc(l.teacher)}</a></div>" for l in ls)
-                        parts.append(f'<div class="cell b" data-tip="{tip}">{txt}</div>')
+                        parts.append(f'<div class="cell b"{tattr(tt, d, p.nr)} data-tip="{tip}">{txt}</div>')
                     else:
-                        parts.append(f'<div class="cell f" data-tip="{tip}">wolna</div>')
+                        parts.append(f'<div class="cell f"{tattr(tt, d, p.nr)} data-tip="{tip}">wolna</div>')
             parts.append("</div>")
             with card().classes("flex-1"):
                 ui.html("".join(parts), sanitize=False).classes("w-full")

@@ -114,6 +114,19 @@ body{background:var(--bg);color:var(--ink);font-family:Inter,'Segoe UI',sans-ser
 a.ws-tag:hover{filter:brightness(1.15);box-shadow:0 0 0 2px #fff,0 0 0 3px currentColor}
 .ws-chip.night{background:#ede9fe;color:#6d28d9}
 .ws-chip.night small{color:#7c3aed}
+/* linia „teraz” i to, co już minęło (skrypt NOW_JS) */
+body.ws-now-on [data-s].past{opacity:.42;filter:grayscale(.75)}
+body.ws-now-on [data-s].cur:not(th){position:relative}
+body.ws-now-on [data-s].cur::after{content:"";position:absolute;background:#ef4444;z-index:4;pointer-events:none;border-radius:2px}
+body.ws-now-on .ax-y [data-s].cur::after{left:-4px;right:-4px;height:2px;top:calc(var(--p,0) * 100%)}
+body.ws-now-on .ax-x [data-s].cur::after{top:-3px;bottom:-3px;width:2px;left:calc(var(--p,0) * 100%)}
+body.ws-now-on [data-s].cur.brk::after{background:repeating-linear-gradient(90deg,#ef4444 0 5px,transparent 5px 9px)}
+body.ws-now-on .ax-x [data-s].cur.brk::after{background:repeating-linear-gradient(180deg,#ef4444 0 5px,transparent 5px 9px)}
+body.ws-now-on [data-s].hd.cur::before{content:attr(data-now);position:absolute;z-index:5;background:#ef4444;color:#fff;
+  font-size:11px;font-weight:700;padding:1px 6px;border-radius:8px;white-space:nowrap;letter-spacing:0}
+body.ws-now-on .ax-y [data-s].hd.cur::before{left:-6px;top:calc(var(--p,0) * 100% - 9px)}
+body.ws-now-on .ax-x [data-s].hd.cur::before{top:-16px;left:calc(var(--p,0) * 100%);transform:translateX(-50%)}
+body.ws-now-on .ws-today{color:#ef4444!important}
 """
 
 TOOLTIP_JS = r"""
@@ -134,6 +147,52 @@ document.addEventListener('mousemove', e => {
 });
 </script>
 """
+
+
+NOW_JS = r"""
+<script>
+// Linia „teraz”: komórki z data-d (dzień 0=pn), data-s/data-e (minuty od północy) dostają
+// klasę past (już było — wyszarzone), cur (trwa teraz; --p = postęp 0..1) albo cur brk (przerwa: linia na krawędzi).
+(function () {
+  function tick() {
+    const n = new Date(), wd = (n.getDay() + 6) % 7, m = n.getHours() * 60 + n.getMinutes() + n.getSeconds() / 60;
+    const label = n.toTimeString().slice(0, 5);
+    document.querySelectorAll('[data-s]').forEach(el => {
+      const d = el.dataset.d === '*' ? wd : +el.dataset.d, s = +el.dataset.s, e = +el.dataset.e;
+      const past = wd < 5 && (d < wd || (d === wd && e <= m));
+      el.classList.toggle('past', past && !el.classList.contains('hd'));
+      let cur = false, brk = false, p = 0;
+      if (d === wd) {
+        if (s <= m && m < e) { cur = true; p = (m - s) / (e - s); }
+        else if (m < s && (+el.dataset.prev || 0) <= m && el.dataset.prev) { cur = true; brk = true; p = 0; }
+      }
+      el.classList.toggle('cur', cur);
+      el.classList.toggle('brk', brk);
+      if (cur) { el.style.setProperty('--p', p.toFixed(4)); el.dataset.now = label; }
+    });
+    document.querySelectorAll('[data-today]').forEach(el => el.classList.toggle('ws-today', +el.dataset.today === wd));
+  }
+  let t = null;
+  new MutationObserver(() => { clearTimeout(t); t = setTimeout(tick, 60); })
+    .observe(document.body, {childList: true, subtree: true});
+  setInterval(tick, 15000);
+  tick();
+})();
+</script>
+"""
+
+
+def _min(hm: str) -> int:
+    h, m = hm.split(":")
+    return int(h) * 60 + int(m)
+
+
+def tattr(tt, d, nr: int) -> str:
+    """Atrybuty komórki dla linii „teraz” (NOW_JS): dzień, początek/koniec lekcji i koniec poprzedniej."""
+    p = tt.period_by_nr[nr]
+    i = tt.periods.index(p)
+    prev = f' data-prev="{_min(tt.periods[i - 1].end)}"' if i else ""
+    return f' data-d="{d}" data-s="{_min(p.start)}" data-e="{_min(p.end)}"{prev}'
 
 
 def set_on(btn, on: bool) -> None:
@@ -187,6 +246,28 @@ def pc_badge(inv, room: str, detailed: bool = False) -> str:
     cls = "ws-pc it" if kind == "it" else "ws-pc"
     icon = "💻" if kind == "it" else "🖥"
     return f'<span class="{cls}" data-tip="<b>{head}</b>&#10;{tip}">{icon} {text}</span>'
+
+
+_NOW = {"on": False}     # przełącznik „Pokaż teraz” (wspólny dla widoków planu, do zamknięcia programu)
+
+
+def now_toggle():
+    """Przycisk-przełącznik: czerwona linia bieżącej chwili + wyszarzenie tego, co już minęło."""
+    b = ui.button(icon="schedule").props("no-caps color=primary")
+
+    def apply():
+        on = _NOW["on"]
+        b.text = "Teraz: włączone" if on else "Pokaż teraz"
+        b.props(remove="outline unelevated").props("unelevated" if on else "outline")
+        ui.query("body").classes(add="ws-now-on") if on else ui.query("body").classes(remove="ws-now-on")
+
+    def toggle():
+        _NOW["on"] = not _NOW["on"]
+        apply()
+    b.on_click(toggle)
+    b.tooltip("Czerwona linia pokazuje, która jest godzina; to, co już było, robi się szare (nic nie znika)")
+    apply()
+    return b
 
 
 def page_header(title: str, pill: str | None = None):

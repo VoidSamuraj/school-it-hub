@@ -25,3 +25,11 @@ def test_teacher_week():
 def test_hours_by_teacher():
     h = hours_by_teacher(_tt())
     assert h == {"Nowak Jan": 4, "Kowalska Ewa": 1, "Zieliński Adam": 0}
+
+
+def test_atrybuty_teraz():
+    from wolnesale.web.theme import tattr
+    tt = _tt()
+    a = tattr(tt, 0, 2)
+    assert 'data-d="0"' in a and 'data-s="540"' in a and 'data-e="585"' in a and 'data-prev="525"' in a
+    assert "data-prev" not in tattr(tt, "*", 1)

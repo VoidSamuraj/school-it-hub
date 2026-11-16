@@ -8,7 +8,7 @@ from ...core.sale import BUILDINGS, INNE, building
 from ..app import nav_set
 from ..state import S
 from ..theme import (BCOL, BSHORT, badge, card, empty_plan_notice, esc, page_header, pc_badge,
-                     set_on)
+                     now_toggle, set_on, tattr)
 
 
 def slot_tip(tt: Timetable, room: str, d: int, nr: int, ls) -> str:
@@ -96,10 +96,12 @@ def build():
     nav_set("/tydzien")
     tt = S.tt
     with ui.column().classes("ws-page"):
-        page_header("Tydzień", "najedź na kratkę, by zobaczyć szczegóły")
+        actions = page_header("Tydzień", "najedź na kratkę, by zobaczyć szczegóły")
         if not tt:
             empty_plan_notice()
             return
+        with actions:
+            now_toggle()
         st = {"bld": None}
         room_filters(st, lambda: grid.refresh())
         with ui.row().classes("items-center gap-6 w-full"):
@@ -121,8 +123,9 @@ def build():
                 if i:
                     h1.append('<th class="gap"></th>')
                     h2.append('<th class="gap"></th>')
-                h1.append(f'<th class="day" colspan="{len(per)}">{DAY_NAMES[d]}</th>')
-                h2 += [f'<th data-tip="Lekcja {p.nr}&#10;🕒 {p.start}–{p.end}">{p.nr}</th>' for p in per]
+                h1.append(f'<th class="day" data-today="{d}" colspan="{len(per)}">{DAY_NAMES[d]}</th>')
+                h2 += [f'<th class="hd"{tattr(tt, d, p.nr)} data-tip="Lekcja {p.nr}&#10;🕒 {p.start}–{p.end}">'
+                       f'{p.nr}</th>' for p in per]
             h1.append("<th></th>")
             h2.append('<th style="text-align:left;padding-left:12px">wolne</th>')
             body = []
@@ -141,10 +144,10 @@ def build():
                         if not wh.lesson_in_hours(tt, d, p.nr):
                             cls += " off"
                             tip += "&#10;🌙 poza moimi godzinami pracy"
-                        cells.append(f'<td><span class="ws-c {cls}" data-tip="{tip}"></span></td>')
+                        cells.append(f'<td{tattr(tt, d, p.nr)}><span class="ws-c {cls}" data-tip="{tip}"></span></td>')
                 cells.append(f'<td class="free"><b>{free}</b>/{total}</td>')
                 body.append("<tr>" + "".join(cells) + "</tr>")
-            html = (f'<div class="ws-week"><table><thead><tr>{"".join(h1)}</tr><tr>{"".join(h2)}</tr></thead>'
+            html = (f'<div class="ws-week ax-x"><table><thead><tr>{"".join(h1)}</tr><tr>{"".join(h2)}</tr></thead>'
                     f'<tbody>{"".join(body)}</tbody></table></div>')
             with card():
                 ui.html(html, sanitize=False).classes("w-full")

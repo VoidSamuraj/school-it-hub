@@ -12,7 +12,7 @@ from ...core.osoby import _PLACEHOLDERS, norm_key
 from ...core.wolne import now_target
 from ..app import nav_set
 from ..state import S
-from ..theme import badge, card, empty_plan_notice, esc, page_header
+from ..theme import badge, card, empty_plan_notice, esc, now_toggle, page_header, tattr
 
 
 def url_for(teacher: str) -> str:
@@ -50,6 +50,8 @@ def build(name: str | None = None):
         teachers = sorted(hours, key=pl_key)
         name = unquote(name) if name else None
         with actions:
+            if name:
+                now_toggle()
             ui.select(teachers, value=name if name in hours else None, with_input=True, label="Nauczyciel",
                       on_change=lambda e: e.value and ui.navigate.to(url_for(e.value))) \
                 .props("outlined dense rounded options-dense").classes("w-72")
@@ -120,13 +122,14 @@ def teacher_view(tt, name: str) -> None:
 
     with ui.row().classes("w-full gap-5 items-start no-wrap"):
         cols = f"92px repeat({len(tt.days)}, minmax(120px, 1fr))"
-        parts = [f'<div class="ws-tt" style="grid-template-columns:{cols}"><div></div>']
-        parts += [f'<div class="h">{DAY_NAMES[d]}</div>' for d in tt.days]
+        parts = [f'<div class="ws-tt ax-y" style="grid-template-columns:{cols}"><div></div>']
+        parts += [f'<div class="h" data-today="{d}">{DAY_NAMES[d]}</div>' for d in tt.days]
         for p in tt.periods:
-            parts.append(f'<div class="h" style="text-align:left">{p.nr}<small>{p.start}–{p.end}</small></div>')
+            parts.append(f'<div class="h hd"{tattr(tt, "*", p.nr)} style="text-align:left">{p.nr}'
+                         f'<small>{p.start}–{p.end}</small></div>')
             for d in tt.days:
                 ls = w.slots.get((d, p.nr), [])
-                ring = ' style="outline:2px solid var(--acc);outline-offset:1px"' if (d, p.nr) == now_key else ""
+                ring = tattr(tt, d, p.nr)
                 if ls:
                     txt = "".join(
                         f"<b>{esc(l.subject)}</b>{esc(l.cls)} {esc(l.group)}"
